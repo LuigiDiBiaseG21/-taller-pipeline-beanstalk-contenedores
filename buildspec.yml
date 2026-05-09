@@ -3,7 +3,7 @@ version: 0.2
 phases:
   pre_build:
     commands:
-      - echo Iniciando sesión en Amazon ECR...
+      - echo Iniciando sesion en Amazon ECR...
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 737927950229.dkr.ecr.us-east-1.amazonaws.com
 
   build:
@@ -17,4 +17,25 @@ phases:
     commands:
       - echo Enviando imagen a Amazon ECR...
       - docker push 737927950229.dkr.ecr.us-east-1.amazonaws.com/python_app:latest
+      - echo Generando Dockerrun.aws.json para Elastic Beanstalk...
+      - |
+        cat > Dockerrun.aws.json <<EOF
+        {
+          "AWSEBDockerrunVersion": "1",
+          "Image": {
+            "Name": "737927950229.dkr.ecr.us-east-1.amazonaws.com/python_app:latest",
+            "Update": "true"
+          },
+          "Ports": [
+            {
+              "ContainerPort": 5000
+            }
+          ]
+        }
+        EOF
+      - cat Dockerrun.aws.json
       - echo Build finalizado correctamente.
+
+artifacts:
+  files:
+    - Dockerrun.aws.json
